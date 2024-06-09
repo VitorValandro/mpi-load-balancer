@@ -1,0 +1,17 @@
+version: "3.8"
+services:
+  mpi-node:
+    image: key_db_image
+    networks:
+      mpi_network:
+        aliases:
+          - mpi-node
+    deploy:
+      mode: replicated
+      replicas: 6
+    ports:
+      - "22"
+    command: ["tail", "-f", "/dev/null"]
+networks:
+  mpi_network:
+    driver: bridge

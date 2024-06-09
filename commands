@@ -1,0 +1,3 @@
+docker build -t key_db_image .
+docker-compose up -d
+docker exec db-mpi-node-1 /key_db/entrypoint.sh
