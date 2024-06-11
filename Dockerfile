@@ -29,4 +29,4 @@ RUN chmod +x entrypoint.sh
 RUN mpicc -o key_db main.c load_balancer.c client.c file_replica.c
 
 # Start SSH service and then run entrypoint script
-ENTRYPOINT service ssh start && ./entrypoint.sh && tail -f /dev/null
+ENTRYPOINT service ssh start && tail -f /dev/null

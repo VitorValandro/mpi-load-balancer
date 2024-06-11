@@ -9,8 +9,8 @@
 #define CLIENT 1
 #define FILE_REPLICA 2
 
-void load_balancer();
-void client();
-void file_replica();
+void load_balancer(int n);
+void client(int n);
+void file_replica(int n);
 
 #endif // COMMON_H

@@ -15,15 +15,15 @@ int main(int argc, char **argv)
 
   if (world_rank == 0)
   {
-    load_balancer();
+    load_balancer(world_rank);
   }
   else if (world_rank > 0 && world_rank <= N)
   {
-    client();
+    client(world_rank);
   }
   else
   {
-    file_replica();
+    file_replica(world_rank);
   }
 
   MPI_Finalize();
