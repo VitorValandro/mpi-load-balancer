@@ -1,7 +1,7 @@
 #include "common.h"
 
-void client(int n)
+void client(int n, char *processor_name)
 {
-  printf("Client Node %d\n", n);
+  printf("Client Rank %d, processor %s\n", n, processor_name);
   // Client logic here
 }

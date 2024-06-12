@@ -1,7 +1,7 @@
 #include "common.h"
 
-void load_balancer(int n)
+void load_balancer(int n, char *processor_name)
 {
-  printf("Load Balancer Node %d\n", n);
+  printf("Load Balancer Rank %d, processor %s\n", n, processor_name);
   // Load balancer logic here
 }

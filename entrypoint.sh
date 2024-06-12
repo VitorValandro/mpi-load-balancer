@@ -1,4 +1,6 @@
 #!/bin/bash
+# Start the SSH service
+service ssh start
 
 # Wait for all SSH services to start
 sleep 10

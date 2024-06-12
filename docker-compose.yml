@@ -1,17 +1,58 @@
 version: "3.8"
 services:
-  mpi-node:
-    image: key_db_image
+  load-balancer:
+    build: .
+    container_name: load_balancer
     networks:
-      mpi_network:
-        aliases:
-          - mpi-node
-    deploy:
-      mode: replicated
-      replicas: 6
+      - mpi_network
     ports:
       - "22"
-    command: ["tail", "-f", "/dev/null"]
+    command: ["/key_db/entrypoint.sh"]
+  replica-1:
+    build: .
+    container_name: replica-1
+    networks:
+      - mpi_network
+    ports:
+      - "22"
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["service ssh start && tail -f /dev/null"]
+  replica-2:
+    build: .
+    container_name: replica-2
+    networks:
+      - mpi_network
+    ports:
+      - "22"
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["service ssh start && tail -f /dev/null"]
+  client-1:
+    build: .
+    container_name: client-1
+    networks:
+      - mpi_network
+    ports:
+      - "22"
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["service ssh start && tail -f /dev/null"]
+  client-2:
+    build: .
+    container_name: client-2
+    networks:
+      - mpi_network
+    ports:
+      - "22"
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["service ssh start && tail -f /dev/null"]
+  client-3:
+    build: .
+    container_name: client-3
+    networks:
+      - mpi_network
+    ports:
+      - "22"
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["service ssh start && tail -f /dev/null"]
 networks:
   mpi_network:
     driver: bridge

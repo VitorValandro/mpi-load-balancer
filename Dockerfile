@@ -22,11 +22,9 @@ RUN mkdir -p /var/run/sshd && \
 COPY . /key_db
 WORKDIR /key_db
 
-# Ensure entrypoint script is executable
-RUN chmod +x entrypoint.sh
+# Copy entrypoint script
+COPY entrypoint.sh /key_db/entrypoint.sh
+RUN chmod +x /key_db/entrypoint.sh
 
 # Compile the MPI program
-RUN mpicc -o key_db main.c load_balancer.c client.c file_replica.c
-
-# Start SSH service and then run entrypoint script
-ENTRYPOINT service ssh start && tail -f /dev/null
+RUN mpicc -o key_db main.c load_balancer.c replica.c client.c
