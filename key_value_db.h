@@ -7,16 +7,14 @@
 #define TABLE_SIZE 100
 
 // Define a estrutura para um par chave-valor
-typedef struct KeyValue
-{
+typedef struct KeyValue {
   char *key;
   char *value;
   struct KeyValue *next;
 } KeyValue;
 
 // Define a estrutura para o banco de dados de chave-valor
-typedef struct
-{
+typedef struct {
   KeyValue **table;
 } KeyValueDB;
 
