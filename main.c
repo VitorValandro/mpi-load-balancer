@@ -16,9 +16,8 @@ int main(int argc, char **argv) {
     return -1;
   }
 
-  MPI_Datatype MPI_MESSAGE_WRITE_TYPE, MPI_MESSAGE_READ_TYPE;
-  create_message_write_t_type(&MPI_MESSAGE_WRITE_TYPE);
-  create_message_read_t_type(&MPI_MESSAGE_READ_TYPE);
+  MPI_Datatype MPI_DB_MESSAGE_TYPE;
+  create_message_t_type(&MPI_DB_MESSAGE_TYPE);
 
   // Calculate the number of replicas and clients
   int replica_units, client_units;
@@ -38,8 +37,7 @@ int main(int argc, char **argv) {
     client(world_rank, world_size, processor_name);
   }
 
-  MPI_Type_free(&MPI_MESSAGE_WRITE_TYPE);
-  MPI_Type_free(&MPI_MESSAGE_READ_TYPE);
+  MPI_Type_free(&MPI_DB_MESSAGE_TYPE);
   MPI_Finalize();
   return 0;
 }
