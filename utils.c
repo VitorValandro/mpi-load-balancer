@@ -48,3 +48,63 @@ void get_client_ranks(int world_size, int **ranks, int *size) {
     }
   }
 }
+
+void create_message_write_t_type(MPI_Datatype *mpi_message_write_t_type) {
+  // Define o número de elementos na struct
+  const int nitems = 3;
+
+  // Define o tamanho de cada elemento
+  int blocklengths[3] = {1, MAX_KEY_VALUE_LENGTH, MAX_KEY_VALUE_LENGTH};
+
+  // Define os offsets de cada elemento
+  MPI_Aint offsets[3];
+  offsets[0] = offsetof(message_write_t, client_rank);
+  offsets[1] = offsetof(message_write_t, key);
+  offsets[2] = offsetof(message_write_t, value);
+
+  // Define os tipos de dados de cada elemento
+  MPI_Datatype types[3] = {MPI_INT, MPI_CHAR, MPI_CHAR};
+
+  // Cria o custom type do MPI
+  MPI_Type_create_struct(nitems, blocklengths, offsets, types, mpi_message_write_t_type);
+
+  // Faz o commit do custom type
+  MPI_Type_commit(mpi_message_write_t_type);
+}
+
+void create_message_read_t_type(MPI_Datatype *mpi_message_read_t_type) {
+  // Define o número de elementos na struct
+  const int nitems = 2;
+
+  // Define o tamanho de cada elemento
+  int blocklengths[2] = {1, MAX_KEY_VALUE_LENGTH};
+
+  // Define os offsets de cada elemento
+  MPI_Aint offsets[3];
+  offsets[0] = offsetof(message_read_t, client_rank);
+  offsets[1] = offsetof(message_read_t, key);
+
+  // Define os tipos de dados de cada elemento
+  MPI_Datatype types[2] = {MPI_INT, MPI_CHAR};
+
+  // Cria o custom type do MPI
+  MPI_Type_create_struct(nitems, blocklengths, offsets, types, mpi_message_read_t_type);
+
+  // Faz o commit do custom type
+  MPI_Type_commit(mpi_message_read_t_type);
+}
+
+message_write_t new_write_message(int client_rank, char *key, char *value) {
+  message_write_t message;
+  message.client_rank = client_rank;
+  snprintf(message.key, MAX_KEY_VALUE_LENGTH, "%s", key);
+  snprintf(message.value, MAX_KEY_VALUE_LENGTH, "%s", value);
+  return message;
+}
+
+message_read_t new_read_message(int client_rank, char *key) {
+  message_read_t message;
+  message.client_rank = client_rank;
+  snprintf(message.key, MAX_KEY_VALUE_LENGTH, "%s", key);
+  return message;
+}
