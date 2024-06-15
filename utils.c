@@ -91,7 +91,7 @@ message_t new_read_message(int client_rank, char *key) {
   return message;
 }
 
-message_t new_reply_message(int client_rank, char *key, char *value) {
+message_t new_reply_message(int client_rank, char *key, const char *value) {
   message_t message;
   message.client_rank = client_rank;
   message.message_type = REPLY_MESSAGE_TYPE; // Indica que é uma resposta de leitura
