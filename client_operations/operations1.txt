@@ -1,0 +1,15 @@
+WRITE TheKillers MrBrightside
+WRITE Paramore MiseryBusiness
+READ TheKillers
+READ Paramore
+WRITE LinkinPark InTheEnd
+READ LinkinPark
+WRITE GreenDay AmericanIdiot
+READ GreenDay
+WRITE U2 BeautifulDay
+READ U2
+WRITE blink182 AllTheSmallThings
+READ blink182
+WRITE MyChemicalRomance WelcomeToTheBlackParade
+READ MyChemicalRomance
+WRITE Paramore Decode

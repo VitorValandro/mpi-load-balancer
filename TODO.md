@@ -1,0 +1,4 @@
+- [ ] estruturar melhor arvore de arquivos
+- [ ] lidar com o caso de que a chave nao existe no banco durante um READ
+- [ ] implementar um padrao master/slave entre as réplicas
+- [ ] implementar um jeito de encerrar todos os hosts quando todos os clientes foram encerrados

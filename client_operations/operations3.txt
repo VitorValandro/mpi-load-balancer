@@ -1,0 +1,17 @@
+WRITE TheKillers SmileLikeYouMeanIt
+READ TheKillers
+WRITE Paramore That'sWhatYouGet
+READ Paramore
+WRITE LinkinPark Crawling
+READ LinkinPark
+WRITE GreenDay BoulevardOfBrokenDreams
+READ GreenDay
+WRITE U2 Elevation
+READ U2
+WRITE blink182 What'sMyAgeAgain
+READ blink182
+WRITE MyChemicalRomance Helena
+READ MyChemicalRomance
+WRITE TheKillers WhenYouWereYoung
+READ TheKillers
+WRITE LinkinPark BreakingTheHabit

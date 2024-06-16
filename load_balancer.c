@@ -48,7 +48,10 @@ void load_balancer(int rank, int world_size, char *processor_name) {
     }
   }
 
+  printf("------- Encerrando Load Balancer %d -------\n\n", rank);
+
   free(client_ranks);
   free(replica_ranks);
   MPI_Type_free(&MPI_DB_MESSAGE_TYPE);
+  MPI_Finalize();
 }

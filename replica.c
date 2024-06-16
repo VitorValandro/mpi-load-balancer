@@ -29,7 +29,7 @@ void replica(int rank, int world_size, char *processor_name) {
     } else if (msg.message_type == READ_MESSAGE_TYPE) {
       const char *value = getValue(&db, msg.key);
       message_t reply = new_reply_message(msg.client_rank, msg.key, value);
-      MPI_Send(&reply, 1, MPI_DB_MESSAGE_TYPE, msg.client_rank, REPLY_MESSAGE_TYPE, MPI_COMM_WORLD);
+      MPI_Send(&reply, 1, MPI_DB_MESSAGE_TYPE, msg.client_rank, REPLY_MESSAGE_TAG, MPI_COMM_WORLD);
       printf("-------------------------------------\n"
              "Replica %d recebeu uma mensagem de leitura load balancer\n"
              "Replica %d enviou o valor `%s` para a chave `%s` para o cliente %d\n"
@@ -41,4 +41,5 @@ void replica(int rank, int world_size, char *processor_name) {
   printf("------- Encerrando réplica %d -------\n\n", rank);
 
   freeDB(&db);
+  MPI_Finalize();
 }

@@ -1,0 +1,16 @@
+READ TheKillers
+WRITE TheKillers SomebodyToldMe
+READ Paramore
+WRITE Paramore crushcrushcrush
+READ LinkinPark
+WRITE LinkinPark Numb
+READ GreenDay
+WRITE GreenDay Holiday
+READ U2
+WRITE U2 Vertigo
+READ blink182
+WRITE blink182 IMissYou
+READ MyChemicalRomance
+WRITE MyChemicalRomance I'mNotOkay
+WRITE GreenDay BasketCase
+READ GreenDay
