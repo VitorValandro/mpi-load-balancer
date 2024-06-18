@@ -7,12 +7,11 @@ void load_balancer(int rank, int world_size, char *processor_name) {
   MPI_Datatype MPI_DB_MESSAGE_TYPE;
   create_message_t_type(&MPI_DB_MESSAGE_TYPE);
 
-  int *client_ranks, client_size, *replica_ranks, replica_size;
-  get_client_ranks(world_size, &client_ranks, &client_size);
+  int *replica_ranks, replica_size;
   get_replica_ranks(world_size, &replica_ranks, &replica_size);
 
-  if (client_size == 0 || replica_size == 0) {
-    fprintf(stderr, "Erro ao obter os ranks dos clientes e réplicas\n\n");
+  if (replica_size == 0) {
+    fprintf(stderr, "Erro ao obter os ranks das réplicas\n\n");
     MPI_Abort(MPI_COMM_WORLD, 1);
     return;
   }
@@ -50,7 +49,6 @@ void load_balancer(int rank, int world_size, char *processor_name) {
 
   printf("------- Encerrando Load Balancer %d -------\n\n", rank);
 
-  free(client_ranks);
   free(replica_ranks);
   MPI_Type_free(&MPI_DB_MESSAGE_TYPE);
   MPI_Finalize();
