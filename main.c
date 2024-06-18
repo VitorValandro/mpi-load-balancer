@@ -34,8 +34,13 @@ int main(int argc, char **argv) {
   } else if (world_rank <= replica_units) {
     replica(world_rank, world_size, processor_name);
   } else if (world_rank > replica_units && world_rank <= (replica_units + client_units)) {
+    int total_files = 3; // Esse número deve ser igual ao número de arquivos de operações
+
+    // Calcula o índice do arquivo de operações que o cliente deve ler
+    int file_index = (world_rank - replica_units - 1) % total_files + 1;
+
     char filename[50];
-    snprintf(filename, sizeof(filename), "client_operations/operations%d.txt", world_rank - replica_units);
+    snprintf(filename, sizeof(filename), "client_operations/operations%d.txt", file_index);
 
     operation_t *operations;
     int operation_count;
