@@ -102,6 +102,9 @@ void client(int rank, int world_size, char *processor_name, operation_t *operati
   pthread_join(send_thread, NULL);
   pthread_join(receive_thread, NULL);
 
+  message_t terminate_message = new_terminate_message(rank);
+  MPI_Send(&terminate_message, 1, MPI_DB_MESSAGE_TYPE, LOAD_BALANCER_RANK, TERMINATE_MESSAGE_TAG, MPI_COMM_WORLD);
+
   printf("------- Encerrando cliente %d -------\n\n", rank);
 
   MPI_Type_free(&MPI_DB_MESSAGE_TYPE);

@@ -35,6 +35,12 @@ void replica(int rank, int world_size, char *processor_name) {
              "Replica %d enviou o valor `%s` para a chave `%s` para o cliente %d\n"
              "-------------------------------------\n\n",
              rank, rank, value, msg.key, msg.client_rank);
+    } else if (status.MPI_TAG == TERMINATE_MESSAGE_TAG) {
+      printf("-------------------------------------\n"
+             "Replica %d recebeu uma mensagem de finalização do load balancer\n"
+             "-------------------------------------\n\n",
+             rank);
+      break;
     }
   }
 

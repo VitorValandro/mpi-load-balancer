@@ -10,6 +10,7 @@
 #define READ_MESSAGE_TAG 1
 #define WRITE_MESSAGE_TAG 2
 #define REPLY_MESSAGE_TAG 3
+#define TERMINATE_MESSAGE_TAG 4
 #define MAX_KEY_VALUE_LENGTH 100
 #define WRITE_MESSAGE_TYPE 1
 #define READ_MESSAGE_TYPE 2
@@ -41,6 +42,7 @@ void create_message_t_type(MPI_Datatype *mpi_message_t_type);
 message_t new_write_message(int client_rank, char *key, char *value);
 message_t new_read_message(int client_rank, char *key);
 message_t new_reply_message(int client_rank, char *key, const char *value);
+message_t new_terminate_message(int client_rank);
 
 void parse_operations(const char *filename, operation_t **operations, int *operation_count);
 

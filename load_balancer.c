@@ -7,7 +7,8 @@ void load_balancer(int rank, int world_size, char *processor_name) {
   MPI_Datatype MPI_DB_MESSAGE_TYPE;
   create_message_t_type(&MPI_DB_MESSAGE_TYPE);
 
-  int *replica_ranks, replica_size;
+  int *client_ranks, client_size, *replica_ranks, replica_size;
+  get_client_ranks(world_size, &client_ranks, &client_size);
   get_replica_ranks(world_size, &replica_ranks, &replica_size);
 
   if (replica_size == 0) {
@@ -15,6 +16,8 @@ void load_balancer(int rank, int world_size, char *processor_name) {
     MPI_Abort(MPI_COMM_WORLD, 1);
     return;
   }
+
+  int finished_clients_count = 0;
 
   message_t message;
   MPI_Status status;
@@ -44,6 +47,22 @@ void load_balancer(int rank, int world_size, char *processor_name) {
       }
       printf("Load Balancer difundiu o pedido de escrita de `%s` na chave `%s` para todas as réplicas\n\n",
              message.value, message.key);
+    } else if (status.MPI_TAG == TERMINATE_MESSAGE_TAG) {
+      // Envia a mensagem para todas as réplicas
+      printf("-------------------------------------\n"
+             "Load Balancer recebeu um pedido de finalização do cliente %d\n"
+             "-------------------------------------\n\n",
+             message.client_rank);
+
+      finished_clients_count++;
+      if (finished_clients_count == client_size) {
+        for (int i = 0; i < replica_size; i++) {
+          MPI_Send(&message, 1, MPI_DB_MESSAGE_TYPE, replica_ranks[i], TERMINATE_MESSAGE_TAG, MPI_COMM_WORLD);
+        }
+        printf("Load Balancer difundiu o pedido de finalização do programa para todas as réplicas\n\n");
+        break;
+      }
+      // TODO: receber isso na replica
     }
   }
 

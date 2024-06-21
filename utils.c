@@ -94,9 +94,18 @@ message_t new_read_message(int client_rank, char *key) {
 message_t new_reply_message(int client_rank, char *key, const char *value) {
   message_t message;
   message.client_rank = client_rank;
-  message.message_type = REPLY_MESSAGE_TYPE; // Indica que é uma resposta de leitura
+  message.message_type = REPLY_MESSAGE_TYPE; // Indica que é uma resposta de retorno
   snprintf(message.key, MAX_KEY_VALUE_LENGTH, "%s", key);
   snprintf(message.value, MAX_KEY_VALUE_LENGTH, "%s", value);
+  return message;
+}
+
+message_t new_terminate_message(int client_rank) {
+  message_t message;
+  message.client_rank = client_rank;
+  message.message_type = TERMINATE_MESSAGE_TAG; // Indica que é uma resposta de finalização
+  snprintf(message.key, MAX_KEY_VALUE_LENGTH, "");
+  snprintf(message.value, MAX_KEY_VALUE_LENGTH, "");
   return message;
 }
 
