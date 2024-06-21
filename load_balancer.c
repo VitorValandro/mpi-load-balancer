@@ -62,7 +62,6 @@ void load_balancer(int rank, int world_size, char *processor_name) {
         printf("Load Balancer difundiu o pedido de finalização do programa para todas as réplicas\n\n");
         break;
       }
-      // TODO: receber isso na replica
     }
   }
 

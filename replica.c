@@ -31,7 +31,7 @@ void replica(int rank, int world_size, char *processor_name) {
       message_t reply = new_reply_message(msg.client_rank, msg.key, value);
       MPI_Send(&reply, 1, MPI_DB_MESSAGE_TYPE, msg.client_rank, REPLY_MESSAGE_TAG, MPI_COMM_WORLD);
       printf("-------------------------------------\n"
-             "Replica %d recebeu uma mensagem de leitura load balancer\n"
+             "Replica %d recebeu uma mensagem de leitura do load balancer\n"
              "Replica %d enviou o valor `%s` para a chave `%s` para o cliente %d\n"
              "-------------------------------------\n\n",
              rank, rank, value, msg.key, msg.client_rank);
