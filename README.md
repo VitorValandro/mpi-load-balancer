@@ -29,6 +29,42 @@ mpirun -np 6 ./key_db
 
 6 é o número mínimo de processos para executar o programa. Este valor pode ser substituído para qualquer outro valor maior que ele.
 
+#### Extra: executando com nós distribuídos em uma rede Docker
+
+Com o objetivo de executar o programa em uma rede de nós distribuídos, tentei criar uma rede Docker com 6 nós, cada um com um container rodando o programa. Infelizmente, não tive tempo o suficiente para fazer funcionar 100%, atualmente parece que nem todos os containers estão se comunicando corretamente porque ao checar os logs é possível ver que algumas réplicas estão ignorando mensagens enviadas por clientes, o que não acontece ao executar o programa em um único nó. Apesar disso, o programa ainda funciona corretamente na rede docker, apenas algumas operações são perdidas.
+
+Você pode tentar executar o programa em uma rede de nós distribuídos seguindo os passos abaixo.
+
+##### Requisitos
+
+Para executar o programa em uma rede de nós distribuídos, você precisa ter o Docker instalado em sua máquina, juntamente com o Docker Compose.
+
+##### Build da imagem Docker
+
+O arquivo `Dockerfile` contém as instruções para criar uma imagem Docker com o programa. Lá ele faz a configuração do SSH para as máquinas, copia todos os arquivos para dentro da imagem e compila o código. Para criar a imagem, basta executar o seguinte comando no diretório raiz do projeto:
+
+```
+docker-compose build
+```
+
+ou
+
+```
+docker build .
+```
+
+##### Criação das redes e dos nós
+
+Para criar os containers e a rede existe o arquivo `docker-compose.yml` que contém as configurações individuais de cada container e da rede. Para criar a rede e os containers, basta executar o seguinte comando no diretório raiz do projeto (após a criação da imagem Docker):
+
+```
+docker-compose up -d
+```
+
+##### Adicionando mais containers
+
+Se você quiser adicionar mais containers terá que registrá-los individualmente no arquivo `docker-compose.yml`, seguindo o padrão dos outros containers. É importante atribuir um IP único para cada container e depois atualizar o arquivo `hostfile` incluindo os novos containers para que o MPI possa reconhecê-los.
+
 ### Relatório Técnico
 
 O objetivo desta seção é apresentar o funcionamento geral dos componentes do sistema e esclarecer as decisões de implementação. Detalhes na implementação de cada função e estrutura de dados estão no código por meio de comentários.
@@ -116,3 +152,11 @@ O trabalho demonstra uma implementação simples para um sistema distribuído qu
 A principal falha do sistema é que todo seu funcionamento depende de um único processo, o balanceador de carga, que se falhar pode comprometer todo o sistema. Uma melhoria possível seria aumentar o número de load balancers ou implementar um sistema de eleição para escolher um novo balanceador de carga caso o atual falhe. Outra melhoria importante seria adicionar um mecanismo de confirmação de escrita e consistência eventual para garantir que todas as réplicas tenham coerência de dados e que operações que falharam possam ser recuperadas.
 
 Durante o desenvolvimento do trabalho foi possível aprender mais sobre programação paralela e distribuída, MPI, implementação de sistemas distribuídos e padrões de projeto para esse tipo de sistema. Por isso concluo que o trabalho foi uma oportunidade para entender todos estes conceitos de maneira prática e por isso o objetivo do trabalho foi alcançado.
+
+```
+
+```
+
+```
+
+```
