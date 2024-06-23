@@ -1,4 +1,4 @@
-## Trabalho 2: Programação Paralela - INE 5645
+## Trabalho 2: Programação Paralela e Distribuída - INE 5645
 
 #### Serviço de armazenamento de chave-valor com um mecanismo de balanceamento de carga com replicação
 
