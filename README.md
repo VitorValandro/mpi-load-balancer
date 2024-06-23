@@ -145,6 +145,350 @@ Com as duas threads encerradas, o cliente cria uma última mensagem usando o con
 
 #### Exemplos de Execução
 
+Veja abaixo um exemplo de execuçãod o sistema com 6 processos, 3 clientes, 2 réplicas e 1 balanceador de carga. Cada cliente faz 4 operações distintas.
+
+```bash
+------- Inicializando Load Balancer -------
+Rank: 0
+Processor: Vitors-MacBook-Pro.local
+-------------------------------------
+
+------- Inicializando réplica -------
+Rank: 1
+Processor: Vitors-MacBook-Pro.local
+-------------------------------------
+
+Replica 1 esperando mensagens do load balancer...
+
+------- Inicializando réplica -------
+Rank: 2
+Processor: Vitors-MacBook-Pro.local
+-------------------------------------
+
+Replica 2 esperando mensagens do load balancer...
+
+-------------------------------------
+Replica 2 recebeu uma mensagem de escrita do load balancer
+Replica 2 inseriu ou atualizou a chave `TheKillers` com o valor `SmileLikeYouMeanIt`
+-------------------------------------
+
+-------------------------------------
+Load Balancer recebeu um pedido de escrita do cliente 5
+Iniciando difusão do pedido de escrita de `SmileLikeYouMeanIt` na chave `TheKillers` para todas as réplicas
+-------------------------------------
+
+Load Balancer difundiu o pedido de escrita de `SmileLikeYouMeanIt` na chave `TheKillers` para todas as réplicas
+
+-------------------------------------
+-------------------------------------
+Replica 1 recebeu uma mensagem de escrita do load balancer
+Replica 1 inseriu ou atualizou a chave `TheKillers` com o valor `SmileLikeYouMeanIt`
+-------------------------------------
+
+Replica 1 esperando mensagens do load balancer...
+
+Replica 2 esperando mensagens do load balancer...
+
+-------------------------------------
+Replica 2 recebeu uma mensagem de escrita do load balancer
+Replica 2 inseriu ou atualizou a chave `TheKillers` com o valor `MrBrightside`
+------- Inicializando Cliente -------
+Rank: 5
+Processor: Vitors-MacBook-Pro.local
+-------------------------------------
+
+-------------------------------------
+Cliente 5: WRITE key `TheKillers` value `SmileLikeYouMeanIt`
+-------------------------------------
+
+------- Inicializando Cliente -------
+Rank: 3
+Processor: Vitors-MacBook-Pro.local
+-------------------------------------
+
+-------------------------------------
+Cliente 3: WRITE key `TheKillers` value `MrBrightside`
+-------------------------------------
+
+Load Balancer recebeu um pedido de escrita do cliente 3
+Iniciando difusão do pedido de escrita de `MrBrightside` na chave `TheKillers` para todas as réplicas
+-------------------------------------
+
+Load Balancer difundiu o pedido de escrita de `MrBrightside` na chave `TheKillers` para todas as réplicas
+
+-------------------------------------
+Replica 1 recebeu uma mensagem de escrita do load balancer
+Replica 1 inseriu ou atualizou a chave `TheKillers` com o valor `MrBrightside`
+-------------------------------------
+
+Replica 1 esperando mensagens do load balancer...
+
+-------------------------------------
+
+Replica 2 esperando mensagens do load balancer...
+
+------- Inicializando Cliente -------
+Rank: 4
+Processor: Vitors-MacBook-Pro.local
+-------------------------------------
+
+-------------------------------------
+Cliente 4: READ key `TheKillers`
+-------------------------------------
+
+-------------------------------------
+Load Balancer recebeu um pedido de leitura do cliente 4
+Enviando pedido para réplica `1` para buscar valor da chave `TheKillers`
+-------------------------------------
+
+-------------------------------------
+Replica 1 recebeu uma mensagem de leitura load balancer
+Replica 1 enviou o valor `MrBrightside` para a chave `TheKillers` para o cliente 4
+-------------------------------------
+
+Replica 1 esperando mensagens do load balancer...
+
+-------------------------------------
+Cliente 4: READ REPLY key `TheKillers` value `MrBrightside`
+-------------------------------------
+
+-------------------------------------
+Cliente 5: READ key `TheKillers`
+-------------------------------------
+
+-------------------------------------
+Cliente 4: WRITE key `TheKillers` value `SomebodyToldMe`
+-------------------------------------
+
+-------------------------------------
+Cliente 3: WRITE key `Paramore` value `MiseryBusiness`
+-------------------------------------
+
+-------------------------------------
+Load Balancer recebeu um pedido de leitura do cliente 5
+Enviando pedido para réplica `1` para buscar valor da chave `TheKillers`
+-------------------------------------
+
+-------------------------------------
+Load Balancer recebeu um pedido de escrita do cliente 4
+Iniciando difusão do pedido de escrita de `SomebodyToldMe` na chave `TheKillers` para todas as réplicas
+-------------------------------------
+
+Load Balancer difundiu o pedido de escrita de `SomebodyToldMe` na chave `TheKillers` para todas as réplicas
+
+-------------------------------------
+Load Balancer recebeu um pedido de escrita do cliente 3
+Iniciando difusão do pedido de escrita de `MiseryBusiness` na chave `Paramore` para todas as réplicas
+-------------------------------------
+
+Load Balancer difundiu o pedido de escrita de `MiseryBusiness` na chave `Paramore` para todas as réplicas
+
+-------------------------------------
+Replica 1 recebeu uma mensagem de leitura load balancer
+Replica 1 enviou o valor `MrBrightside` para a chave `TheKillers` para o cliente 5
+-------------------------------------
+
+Replica 1 esperando mensagens do load balancer...
+
+-------------------------------------
+Replica 1 recebeu uma mensagem de escrita do load balancer
+Replica 1 inseriu ou atualizou a chave `TheKillers` com o valor `SomebodyToldMe`
+-------------------------------------
+
+Replica 1 esperando mensagens do load balancer...
+
+-------------------------------------
+Replica 1 recebeu uma mensagem de escrita do load balancer
+Replica 1 inseriu ou atualizou a chave `Paramore` com o valor `MiseryBusiness`
+-------------------------------------
+
+Replica 1 esperando mensagens do load balancer...
+
+-------------------------------------
+Replica 2 recebeu uma mensagem de escrita do load balancer
+Replica 2 inseriu ou atualizou a chave `TheKillers` com o valor `SomebodyToldMe`
+-------------------------------------
+
+Replica 2 esperando mensagens do load balancer...
+
+-------------------------------------
+Replica 2 recebeu uma mensagem de escrita do load balancer
+Replica 2 inseriu ou atualizou a chave `Paramore` com o valor `MiseryBusiness`
+-------------------------------------
+
+Replica 2 esperando mensagens do load balancer...
+
+-------------------------------------
+Cliente 5: READ REPLY key `TheKillers` value `MrBrightside`
+-------------------------------------
+
+-------------------------------------
+Cliente 3: READ key `TheKillers`
+-------------------------------------
+
+-------------------------------------
+Load Balancer recebeu um pedido de leitura do cliente 3
+Enviando pedido para réplica `1` para buscar valor da chave `TheKillers`
+-------------------------------------
+
+-------------------------------------
+Replica 1 recebeu uma mensagem de leitura load balancer
+Replica 1 enviou o valor `SomebodyToldMe` para a chave `TheKillers` para o cliente 3
+-------------------------------------
+
+Replica 1 esperando mensagens do load balancer...
+
+-------------------------------------
+Cliente 3: READ REPLY key `TheKillers` value `SomebodyToldMe`
+-------------------------------------
+
+-------------------------------------
+Cliente 5: WRITE key `Paramore` value `That'sWhatYouGet`
+-------------------------------------
+
+-------------------------------------
+Cliente 4: READ key `Paramore`
+-------------------------------------
+
+-------------------------------------
+Load Balancer recebeu um pedido de escrita do cliente 5
+Iniciando difusão do pedido de escrita de `That'sWhatYouGet` na chave `Paramore` para todas as réplicas
+-------------------------------------
+
+Load Balancer difundiu o pedido de escrita de `That'sWhatYouGet` na chave `Paramore` para todas as réplicas
+
+-------------------------------------
+Load Balancer recebeu um pedido de leitura do cliente 4
+-------------------------------------
+Replica 1 recebeu uma mensagem de escrita do load balancer
+Replica 1 inseriu ou atualizou a chave `Paramore` com o valor `That'sWhatYouGet`
+-------------------------------------
+
+Replica 1 esperando mensagens do load balancer...
+
+-------------------------------------
+Replica 1 recebeu uma mensagem de leitura load balancer
+Enviando pedido para réplica `1` para buscar valor da chave `Paramore`
+-------------------------------------
+
+Replica 1 enviou o valor `That'sWhatYouGet` para a chave `Paramore` para o cliente 4
+-------------------------------------
+
+Replica 1 esperando mensagens do load balancer...
+
+-------------------------------------
+Cliente 4: READ REPLY key `Paramore` value `That'sWhatYouGet`
+-------------------------------------
+
+-------------------------------------
+Replica 2 recebeu uma mensagem de escrita do load balancer
+Replica 2 inseriu ou atualizou a chave `Paramore` com o valor `That'sWhatYouGet`
+-------------------------------------
+
+Replica 2 esperando mensagens do load balancer...
+
+-------------------------------------
+Cliente 4: WRITE key `Paramore` value `crushcrushcrush`
+-------------------------------------
+
+-------------------------------------
+Load Balancer recebeu um pedido de escrita do cliente 4
+Iniciando difusão do pedido de escrita de `crushcrushcrush` na chave `Paramore` para todas as réplicas
+-------------------------------------
+
+Load Balancer difundiu o pedido de escrita de `crushcrushcrush` na chave `Paramore` para todas as réplicas
+
+-------------------------------------
+Replica 2 recebeu uma mensagem de escrita do load balancer
+Replica 2 inseriu ou atualizou a chave `Paramore` com o valor `crushcrushcrush`
+-------------------------------------
+
+Replica 2 esperando mensagens do load balancer...
+
+-------------------------------------
+Replica 1 recebeu uma mensagem de escrita do load balancer
+Replica 1 inseriu ou atualizou a chave `Paramore` com o valor `crushcrushcrush`
+-------------------------------------
+
+Replica 1 esperando mensagens do load balancer...
+
+-------------------------------------
+Cliente 3: READ key `Paramore`
+-------------------------------------
+
+-------------------------------------
+Load Balancer recebeu um pedido de leitura do cliente 3
+Enviando pedido para réplica `1` para buscar valor da chave `Paramore`
+-------------------------------------
+
+-------------------------------------
+Replica 1 recebeu uma mensagem de leitura load balancer
+Replica 1 enviou o valor `crushcrushcrush` para a chave `Paramore` para o cliente 3
+-------------------------------------
+
+Replica 1 esperando mensagens do load balancer...
+
+-------------------------------------
+Cliente 3: READ REPLY key `Paramore` value `crushcrushcrush`
+-------------------------------------
+
+-------------------------------------
+Cliente 5: READ key `Paramore`
+-------------------------------------
+
+-------------------------------------
+Cliente 5: READ REPLY key `Paramore` value `crushcrushcrush`
+-------------------------------------
+
+-------------------------------------
+Load Balancer recebeu um pedido de leitura do cliente 5
+Enviando pedido para réplica `1` para buscar valor da chave `Paramore`
+-------------------------------------
+
+-------------------------------------
+Replica 1 recebeu uma mensagem de leitura load balancer
+Replica 1 enviou o valor `crushcrushcrush` para a chave `Paramore` para o cliente 5
+-------------------------------------
+
+Replica 1 esperando mensagens do load balancer...
+
+------- Encerrando cliente 3 -------
+
+-------------------------------------
+Load Balancer recebeu um pedido de finalização do cliente 3
+-------------------------------------
+
+-------------------------------------
+Load Balancer recebeu um pedido de finalização do cliente 5
+-------------------------------------
+
+------- Encerrando cliente 5 -------
+
+-------------------------------------
+Load Balancer recebeu um pedido de finalização do cliente 4
+-------------------------------------
+
+Load Balancer difundiu o pedido de finalização do programa para todas as réplicas
+
+------- Encerrando Load Balancer 0 -------
+
+------- Encerrando cliente 4 -------
+
+-------------------------------------
+Replica 2 recebeu uma mensagem de finalização do load balancer
+-------------------------------------
+
+------- Encerrando réplica 2 -------
+
+-------------------------------------
+Replica 1 recebeu uma mensagem de finalização do load balancer
+-------------------------------------
+
+------- Encerrando réplica 1 -------
+```
+
+Repare que os clientes fazem suas operações, o load balancer distribui as requisições para as réplicas e as réplicas respondem as requisições diretamente aos clientes. No final, cada cliente encerra sua execução e quando todos estão finalizados o load balancer encerra o programa ao difundir uma mensagem de encerramento para todas as réplicas antes de encerrar sua própria execução.
+
 #### Conclusão
 
 O trabalho demonstra uma implementação simples para um sistema distribuído que oferece escalabilidade horizontal e alta disponibilidade através da replicação de dados e do balanceamento de carga. O programa funciona com qualquer número de processos sem precisar de nenhuma alteração, e é simples alterar ou adicionar novas operações que serão feitas pelos clientes. O sistema também é capaz de encerrar sua execução de maneira segura e ordenada, garantindo que todos os processos terminem corretamente.
@@ -152,11 +496,3 @@ O trabalho demonstra uma implementação simples para um sistema distribuído qu
 A principal falha do sistema é que todo seu funcionamento depende de um único processo, o balanceador de carga, que se falhar pode comprometer todo o sistema. Uma melhoria possível seria aumentar o número de load balancers ou implementar um sistema de eleição para escolher um novo balanceador de carga caso o atual falhe. Outra melhoria importante seria adicionar um mecanismo de confirmação de escrita e consistência eventual para garantir que todas as réplicas tenham coerência de dados e que operações que falharam possam ser recuperadas.
 
 Durante o desenvolvimento do trabalho foi possível aprender mais sobre programação paralela e distribuída, MPI, implementação de sistemas distribuídos e padrões de projeto para esse tipo de sistema. Por isso concluo que o trabalho foi uma oportunidade para entender todos estes conceitos de maneira prática e por isso o objetivo do trabalho foi alcançado.
-
-```
-
-```
-
-```
-
-```
