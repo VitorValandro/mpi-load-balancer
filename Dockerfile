@@ -27,4 +27,4 @@ COPY entrypoint.sh /key_db/entrypoint.sh
 RUN chmod +x /key_db/entrypoint.sh
 
 # Compile the MPI program
-RUN  mpicc -o key_db main.c load_balancer.c replica.c client.c key_value_db.c utils.c parse_operations.c
+RUN  mpicc -o key_db main.c load_balancer.c replica.c client.c key_value_db.c utils.c
