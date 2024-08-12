@@ -1,13 +1,52 @@
-#### Distributed Key-Value Storage Service with Load Balancing and Replication
+### Distributed Key-Value Storage Service with Load Balancing and Replication
 
-### How to compile and run
+A simple distributed system that provides a key-value storage service with load balancing and replication. The system has support for multiple database replicas and clients, with a load balancer that distributes read and write requests consistently among the replicas. The system is intended to run in multiple isolated computers connected via network, and it is implemented using MPI and C.
 
-#### Requirements
+## Table of Contents
+
+1. [About the project](#about-the-project)
+2. [How to compile and run](#how-to-compile-and-run)
+   1. [Requirements](#requirements)
+   2. [Compiling](#compiling)
+   3. [Running](#running)
+   4. [Extra: running with distributed nodes in a Docker network](#extra-running-with-distributed-nodes-in-a-docker-network)
+      1. [Requirements](#requirements-1)
+      2. [Docker image build](#docker-image-build)
+      3. [Creating networks and nodes](#creating-networks-and-nodes)
+      4. [Adding more containers](#adding-more-containers)
+3. [Technical Details](#technical-details)
+   1. [Distributed System Components](#distributed-system-components)
+   2. [The Key-Value Database](#the-key-value-database)
+   3. [The Load Balancer](#the-load-balancer)
+   4. [The Replicas](#the-replicas)
+   5. [The Clients](#the-clients)
+      1. [The Operations Files](#the-operations-files)
+      2. [How it operates](#how-it-operates)
+         1. [Sending Requests](#sending-requests)
+         2. [Receiving Responses](#receiving-responses)
+         3. [Ending Execution](#ending-execution)
+   6. [Conclusão](#conclusão)
+
+## About the project
+
+This project was developed as a final assignment for the Parallel and Distributed Programming course at UFSC. The objective of the project was to implement a distributed system that provides a key-value storage service with load balancing and replication. The system could be implemented using any language that supports inter-process communication, but I chose to use C and MPI because I wanted to do it in a low-level way and learn more about how it works.
+
+This solution demonstrates a simple architecture for a distributed system that offers horizontal scalability and high availability through data replication and load balancing. The program works with any number of processes without requiring any changes, and it is simple to change or add new operations that will be performed by clients. The system is also able to terminate its execution in a safe and orderly manner, ensuring that all processes end correctly.
+
+The system's main flaw is that its entire operation depends on a single process, the load balancer, which, if it fails, could compromise the entire system. One possible improvement would be to increase the number of load balancers or implement an election system to choose a new load balancer if the current one fails. Another important improvement would be to add a write confirmation and eventual consistency mechanism to ensure that all replicas have consistent data and that failed operations can be recovered.
+
+This was a very rewarding experience for me, I found it very challenging and spent a lot of time in this project solving the issues that come with distributed systems communication, data consistency and synchronization. I learned a lot about parallel and distributed programming, MPI, distributed systems architecture and design patterns for this type of system. I am very satisfied with the result and I believe that the project met its objective.
+
+Below is a detailed explanation of the system's components and how they work.
+
+## How to compile and run
+
+### Requirements
 
 - GCC;
 - MPI;
 
-##### Compiling
+#### Compiling
 
 To compile the program, just run the following command:
 
@@ -139,10 +178,4 @@ When all the requests in the vector of operations have been sent, the request-se
 
 With both threads terminated, the client creates one last message using the `new_terminate_message` constructor and sends the message to the load balancer using `MPI_Send`. The client then terminates its execution. When the load balancer receives the termination message from all clients, it broadcasts a message to all replicas indicating that the program can be terminated and also terminates its execution.
 
-#### Conclusão
-
-O trabalho demonstra uma implementação simples para um sistema distribuído que oferece escalabilidade horizontal e alta disponibilidade através da replicação de dados e do balanceamento de carga. O programa funciona com qualquer número de processos sem precisar de nenhuma alteração, e é simples alterar ou adicionar novas operações que serão feitas pelos clientes. O sistema também é capaz de encerrar sua execução de maneira segura e ordenada, garantindo que todos os processos terminem corretamente.
-
-A principal falha do sistema é que todo seu funcionamento depende de um único processo, o balanceador de carga, que se falhar pode comprometer todo o sistema. Uma melhoria possível seria aumentar o número de load balancers ou implementar um sistema de eleição para escolher um novo balanceador de carga caso o atual falhe. Outra melhoria importante seria adicionar um mecanismo de confirmação de escrita e consistência eventual para garantir que todas as réplicas tenham coerência de dados e que operações que falharam possam ser recuperadas.
-
-Durante o desenvolvimento do trabalho foi possível aprender mais sobre programação paralela e distribuída, MPI, implementação de sistemas distribuídos e padrões de projeto para esse tipo de sistema. Por isso concluo que o trabalho foi uma oportunidade para entender todos estes conceitos de maneira prática e por isso o objetivo do trabalho foi alcançado.
+###### Vitor Matheus Valandro da Rosa. June 2024.
