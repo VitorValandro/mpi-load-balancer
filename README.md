@@ -25,7 +25,6 @@ A simple distributed system that provides a key-value storage service with load 
          1. [Sending Requests](#sending-requests)
          2. [Receiving Responses](#receiving-responses)
          3. [Ending Execution](#ending-execution)
-   6. [Conclusão](#conclusão)
 
 ## About the project
 
