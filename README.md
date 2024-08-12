@@ -1,493 +1,143 @@
-## Trabalho 2: Programação Paralela e Distribuída - INE 5645
+#### Distributed Key-Value Storage Service with Load Balancing and Replication
 
-#### Serviço de armazenamento de chave-valor com um mecanismo de balanceamento de carga com replicação
+### How to compile and run
 
-#### Vitor Matheus Valandro da Rosa (22102567)
-
-### Como compilar e executar
-
-#### Pré Requisitos
+#### Requirements
 
 - GCC;
 - MPI;
 
-##### Compilar
+##### Compiling
 
-Para compilar o programa, basta executar o seguinte comando:
+To compile the program, just run the following command:
 
 ```
 mpicc -o key_db main.c load_balancer.c replica.c client.c key_value_db.c utils.c
 ```
 
-##### Executar
+##### Running
 
-Para executar o programa, basta executar o seguinte comando:
+To run the program, just run the following command:
 
 ```
 mpirun -np 6 ./key_db
 ```
 
-6 é o número mínimo de processos para executar o programa. Este valor pode ser substituído para qualquer outro valor maior que ele.
+6 is the minimum number of processes to run the program. This value can be replaced by any other value greater than it.
 
-#### Extra: executando com nós distribuídos em uma rede Docker
+#### Extra: running with distributed nodes in a Docker network
 
-Com o objetivo de executar o programa em uma rede de nós distribuídos, tentei criar uma rede Docker com 6 nós, cada um com um container rodando o programa. Infelizmente, não tive tempo o suficiente para fazer funcionar 100%, atualmente parece que nem todos os containers estão se comunicando corretamente porque ao checar os logs é possível ver que algumas réplicas estão ignorando mensagens enviadas por clientes, o que não acontece ao executar o programa em um único nó. Apesar disso, o programa ainda funciona corretamente na rede docker, apenas algumas operações são perdidas.
+In order to run the program on a network of distributed nodes, I tried to create a Docker network with 6 nodes, each with a container running the program. Unfortunately, I haven't had enough time to make it work 100%. It currently seems that not all the containers are communicating correctly because when I check the logs I can see that some replicas are ignoring messages sent by clients, which doesn't happen when running the program on a single node. Despite this, the program still works correctly on the docker network, only some operations are lost.
 
-Você pode tentar executar o programa em uma rede de nós distribuídos seguindo os passos abaixo.
+You can try running the program on a network of distributed nodes by following the steps below.
 
-##### Requisitos
+##### Requirements
 
-Para executar o programa em uma rede de nós distribuídos, você precisa ter o Docker instalado em sua máquina, juntamente com o Docker Compose.
+To run the program on a network of distributed nodes, you need to have Docker installed on your machine, along with Docker Compose.
 
-##### Build da imagem Docker
+##### Docker image build
 
-O arquivo `Dockerfile` contém as instruções para criar uma imagem Docker com o programa. Lá ele faz a configuração do SSH para as máquinas, copia todos os arquivos para dentro da imagem e compila o código. Para criar a imagem, basta executar o seguinte comando no diretório raiz do projeto:
+The `Dockerfile` contains the instructions for creating a Docker image with the program. There it sets up SSH for the machines, copies all the files into the image and compiles the code. To create the image, simply run the following command in the root directory of the project:
 
 ```
 docker-compose build
 ```
 
-ou
+or
 
 ```
 docker build .
 ```
 
-##### Criação das redes e dos nós
+##### Creating networks and nodes
 
-Para criar os containers e a rede existe o arquivo `docker-compose.yml` que contém as configurações individuais de cada container e da rede. Para criar a rede e os containers, basta executar o seguinte comando no diretório raiz do projeto (após a criação da imagem Docker):
+To create the containers and the network there is the file `docker-compose.yml` which contains the individual settings for each container and the network. To create the network and containers, simply run the following command in the root directory of the project (after creating the Docker image):
 
 ```
 docker-compose up -d
 ```
 
-##### Adicionando mais containers
+##### Adding more containers
 
-Se você quiser adicionar mais containers terá que registrá-los individualmente no arquivo `docker-compose.yml`, seguindo o padrão dos outros containers. É importante atribuir um IP único para cada container e depois atualizar o arquivo `hostfile` incluindo os novos containers para que o MPI possa reconhecê-los.
+If you want to add more containers, you'll have to register them individually in the `docker-compose.yml` file, following the pattern of the other containers. It is important to assign a unique IP to each container and then update the `hostfile` file including the new containers so that MPI can recognize them.
 
-### Relatório Técnico
+### Technical Details
 
-O objetivo desta seção é apresentar o funcionamento geral dos componentes do sistema e esclarecer as decisões de implementação. Detalhes na implementação de cada função e estrutura de dados estão no código por meio de comentários.
+The aim of this section is to present the general operation of the system's components and clarify the implementation decisions. Details on the implementation of each function and data structure are in the code by means of comments.
 
-#### Componentes do Sistema Distribuído
+#### Distributed System Components
 
-O sistema consiste em 1 processo que funciona como balanceador de carga, N processos que são os clientes que fazem as requisições de escrita e leitura e M processos que atuam como réplicas do banco de dados.
+The system consists of 1 process that acts as a load balancer, N processes that are the clients that make the write and read requests and M processes that act as replicas of the database.
 
-O sistema aceita qualquer número de processos igual ou acima de 6, mas a proporção de cada componente é fixa, sendo que N e M tem uma razão 3:2. Portanto, se um processo tem 3 clientes, ele terá 2 réplicas, se tiver 6 clientes, terá 4 réplicas e assim por diante. Sempre haverá apenas 1 balanceador de carga.
+The system accepts any number of processes equal to or greater than 6, but the proportion of each component is fixed, with N and M having a 3:2 ratio. So, if a process has 3 clients, it will have 2 replicas, if it has 6 clients, it will have 4 replicas and so on. There will always be only 1 load balancer.
 
-Essa proporção foi escolhida para garantir que o sistema tenha um número mínimo de réplicas e clientes e que isso seja suficiente para testar a escalabilidade do sistema e seu caráter distribuído.
+This ratio has been chosen to ensure that the system has a minimum number of replicas and clients and that this is sufficient to test the scalability of the system and its distributed nature.
 
-#### O Banco de Dados
+#### The Key-Value Database
 
-Para a implementação deste trabalho foi criado um banco de dados em memória que armazena pares chave-valor. A estrutura de dados utilizada foi uma tabela hash encadeada. A tabela hash é um vetor de listas encadeadas com 100 posições, onde cada posição guarda uma lista de pares chave-valor que possuem a mesma chave.
+To implement this work, an in-memory database was created which stores key-value pairs. The data structure used was a chained hash table. The hash table is a vector of chained lists with 100 positions, where each position stores a list of key-value pairs that have the same key.
 
-A função hash utilizada é um shift-and-add que utiliza o valor ASCII de cada caractere da chave para calcular o índice da hash table onde o par chave-valor será armazenado.
+The hash function used is a shift-and-add that uses the ASCII value of each character in the key to calculate the index of the hash table where the key-value pair will be stored.
 
-Todas as réplicas começam vazias e mantém sua própria tabela hash e sua cópia dos dados.
+All replicas start empty and maintain their own hash table and copy of the data.
 
-#### O Balanceador de Carga
+#### The Load Balancer
 
-Conforme especificado no enunciado do trabalho, foi implementado um balanceador de carga para as requisições dos clientes. Independentemente do número de processos, só existe 1 load balancer que é responsável por distribuir as requisições dos clientes entre as réplicas do banco de dados.
+A load balancer has been implemented for client requests. Regardless of the number of processes, there is only 1 load balancer which is responsible for distributing client requests among the database replicas.
 
-Antes de começar a escutar as requisições, o load balancer calcula a quantidade e os ranks das réplicas e dos clientes, guardando-os em vetores que serão usados durante sua execução.
+Before it starts listening to requests, the load balancer calculates the number and ranks of replicas and clients, storing them in vectors that will be used during execution.
 
-O load balancer entra em um loop infinito e usa o `MPI_Recv` (bloqueante) para esperar por requisições dos clientes. Aqui ele escuta requisições de qualquer fonte e com qualquer tag. Quando recebe uma mensagem, ele analisa a TAG para checar se é uma requisição de leitura ou de escrita.
+The load balancer enters an infinite loop and uses `MPI_Recv` (blocking) to wait for requests from clients. Here it listens for requests from any source and with any tag. When it receives a message, it analyzes the TAG to check whether it is a read or write request.
 
-No caso de leitura, ele escolhe uma réplica usando round-robin e envia a requisição para ela.
-No caso de escrita, é usado um laço de repetição para difundir a requisição para todas as réplicas.
-Se a mensagem não for nem para leitura nem para escrita, o programa checa se é uma mensagem de finalização. Se for, ele incrementa o contador de clientes finalizados. Quando o contador de clientes finalizados for igual ao número de clientes, o load balancer difunde uma mensagem para todas as réplicas indicando que o programa pode ser encerrado.
+In the case of a read, it chooses a replica using round-robin and sends the request to it.
+In the case of a write, a repeat loop is used to broadcast the request to all replicas.
+If the message is neither read nor write, the program checks to see if it is a completion message. If it is, it increments the counter of terminated clients. When the counter of terminated clients equals the number of clients, the load balancer broadcasts a message to all replicas indicating that the program can be terminated.
 
-#### As Réplicas
+#### The Replicas
 
-As réplicas são responsáveis por manter uma cópia do banco e atender as requisições de escrita e leitura recebidas do load balancer. Existem M réplicas, onde M é um número inteiro maior ou igual a 2 (considerando o mínimo de 6 processos). O número de réplicas é calculado seguindo uma razão 2:3 em relação ao número de clientes.
+The replicas are responsible for maintaining a copy of the database and for responding to write and read requests received from the load balancer. There are M replicas, where M is an integer greater than or equal to 2 (considering a minimum of 6 processes). The number of replicas is calculated according to a 2:3 ratio in relation to the number of clients.
 
-Cada réplica inicializa seu próprio banco de dados chave-valor e depois entra em um loop infinito que fica escutando as mensagens do load balancer, que podem ter qualquer TAG. O MPI_Recv é bloqueante, então a réplica fica esperando até que uma mensagem seja recebida. Quando uma mensagem é recebida pela réplica o programa checa o tipo da mensagem dentro do conteúdo recebido e verifica se é uma operação de escrita ou leitura.
+Each replica initializes its own key-value database and then enters an infinite loop that listens for messages from the load balancer, which can have any TAG. MPI_Recv is blocking, so the replica waits until a message is received. When a message is received by the replica, the program checks the type of the message within the content received and checks whether it is a write or read operation.
 
-No caso de operações de leitura o sistema recebe uma mensagem que contém a chave a ser buscada no banco de dados. A réplica tenta encontrar a chave na tabela hash e o valor associado a ela. Caso o valor para aquela chave não seja encontrado, a réplica usará `NULL` como resposta. Com o valor em mãos, a réplica cria uma nova mensagem usando o construtor `new_reply_message` e envia a resposta diretamente para o cliente que fez a requisição, cujo rank está também contido no conteúdo da mensagem.
+In the case of read operations, the system receives a message containing the key to be searched for in the database. The replica tries to find the key in the hash table and the value associated with it. If the value for that key is not found, the replica uses `NULL` as a response. With the value in hand, the replica creates a new message using the `new_reply_message` constructor and sends the reply directly to the client that made the request, whose rank is also contained in the content of the message.
 
-No caso de operações de escrita todas as réplicas recebem a mesma mensagem que contém a chave e o valor a serem escritos. Cada réplica tenta inserir o par chave-valor na sua tabela hash. Se a chave já existir, o valor é atualizado. Após a inserção ou edição a réplica volta a escutar por novas mensagens, sem enviar resposta para o load balancer ou para o cliente.
+In the case of write operations, all replicas receive the same message containing the key and value to be written. Each replica tries to insert the key-value pair into its hash table. If the key already exists, the value is updated. After inserting or editing, the replica listens again for new messages, without sending a reply to the load balancer or the client.
 
-Caso a mensagem recebida não seja nem de leitura nem de escrita, a réplica checa se é uma mensagem de encerramento. Se for, a réplica sai do laço de repetição e encerra sua execução.
+If the message received is neither read nor write, the replica checks to see if it is a close message. If it is, the replica exits the loop and ends its execution.
 
-#### Os Clientes
+#### The Clients
 
-Os clientes são responsáveis por enviar as requisições de leitura e escrita. Existem N clientes, onde N é um número inteiro maior ou igual a 3 (considerando o mínimo de 6 processos). O número de clientes é calculado seguindo uma razão 3:2 em relação ao número de réplicas.
+Clients are responsible for sending read and write requests. There are N clients, where N is an integer greater than or equal to 3 (considering a minimum of 6 processes). The number of clients is calculated in a 3:2 ratio to the number of replicas.
 
-##### Arquivo de Operações
+##### The Operations Files
 
-Clientes podem enviar mensagens de leitura ou de escrita. As operações que o cliente irá fazer são determinadas por um arquivo de texto que contém as requisições linha por linha. O arquivo deve respeitar o padrão `<OPERACAO> <chave> <valor>`, onde `<OPERACAO>` é uma string que pode ser `READ` ou `WRITE`, `<chave>` é uma string de tamanho máximo 100 que representa a chave a ser buscada ou escrita e `<valor>` é uma string de tamanho máximo 100 que representa o valor a ser escrito em caso de operações do tipo `WRITE`.
+Clients can send read or write messages. The operations that the client will perform are determined by a text file that contains the requests line by line. The file must respect the pattern `<OPERATION> <key> <value>`, where `<OPERATION>` is a string that can be `READ` or `WRITE`, `<key>` is a string of maximum length 100 that represents the key to be fetched or written and `<value>` is a string of maximum length 100 that represents the value to be written in the case of `WRITE` type operations.
 
-Dentro do arquivo `utils.c` existe uma função `parse_operations` que recebe o caminho para o arquivo, lê as operações e as armazena em um vetor de operações. Cada operação é representada por uma estrutura de dados `operation_t` que contém o tipo de operação, a chave e o valor. Existem três arquivos pré-criados dentro do diretório `client_operations`, com 3 conjuntos de operações diferentes que podem ser usados para testar o sistema. No arquivo `main.c` na determinação do papel do processo de acordo com seu rank para cada cliente um dos arquivos é escolhido usando round-robin, de maneira que cada cliente tenha um arquivo diferente mas que todos os clientes tenham um arquivo, mesmo que haja mais clientes do que arquivos. Ainda na `main.c`, a função `parse_operations` é chamada para ler as operações do arquivo escolhido e a função do cliente é chamada já com o vetor de operações pronto. Para adicionar mais arquivos de operações, basta criar um arquivo de texto com as operações respeitando o formato especificado e nomeá-lo `operationsN.txt`, onde N é um número inteiro sequencial.
+Inside the `utils.c` file there is a `parse_operations` function that receives the path to the file, reads the operations and stores them in an operations vector. Each operation is represented by an `operation_t` data structure containing the type of operation, the key and the value. There are three pre-created files inside the `client_operations` directory, with 3 different sets of operations that can be used to test the system. In the `main.c` file, when determining the role of the process according to its rank for each client, one of the files is chosen using round-robin, so that each client has a different file but all clients have a file, even if there are more clients than files. Still in `main.c`, the `parse_operations` function is called to read the operations from the chosen file and the client function is called with the vector of operations ready. To add more operation files, simply create a text file with the operations in the specified format and name it `operationsN.txt`, where N is a sequential integer.
 
-##### Funcionamento
+##### How it operates
 
-Com o vetor de operações já em mãos cada cliente conta quantas operações são de leitura e guarda esse valor em um contador. Isso será útil para determinar se o cliente já pode encerrar sua execução. O cliente tem duas funções principais, enviar requisições e receber respostas. Como são fluxos de dados independentes, resolvi utilizar o padrão Fork Join para criar duas threads, uma para enviar requisições e outra para receber respostas.
+With the vector of operations already in hand, each client counts how many operations are read operations and stores this value in a counter. This is useful for determining whether the client can end its execution. The client has two main functions, sending requests and receiving responses. As these are independent data flows, I decided to use the Fork Join pattern to create two threads, one to send requests and one to receive responses.
 
-###### Enviando Requisições
+###### Sending Requests
 
-Na thread de envio de requisições existe um laço de repetição baseado na contagem de operações lidas do arquivo. Para cada operação o cliente determina se é uma mensagem de escrita ou leitura. No caso de mensagens de leitura uma mensagem é criada usando o construtor `new_read_message` passando como parâmetro o rank do cliente e a chave a ser lida. O construtor retorna uma mensagem do tipo `message_t`, compatível com o tipo de dado MPI customizado `MPI_DB_MESSAGE_TYPE` que foi criado no início do processo. Com a mensagem pronta, o cliente envia a mensagem para o load balancer usando `MPI_Send` (bloqueante).
+In the request-sending thread there is a repeat loop based on the count of operations read from the file. For each operation, the client determines whether it is a write or read message. In the case of read messages, a message is created using the `new_read_message` constructor, passing the client's rank and the key to be read as parameters. The constructor returns a message of type `message_t`, compatible with the custom MPI data type `MPI_DB_MESSAGE_TYPE` that was created at the start of the process. With the message ready, the client sends the message to the load balancer using `MPI_Send` (blocking).
 
-No caso de mensagens de escrita, o cliente cria uma mensagem usando o construtor `new_write_message` passando como parâmetro o rank do cliente, a chave e o valor a serem escritos. O construtor retorna uma mensagem do tipo `message_t` que é enviada para o load balancer usando `MPI_Send` (bloqueante).
+In the case of write messages, the client creates a message using the `new_write_message` constructor, passing the client's rank, the key and the value to be written as parameters. The constructor returns a message of type `message_t` which is sent to the load balancer using `MPI_Send` (blocking).
 
-Conforme especificado no enunciado do trabalho, após o envio da mensagem o cliente espera entre 1 a 2 segundos antes de prosseguir com o laço de repetição.
+After sending the message the client waits between 1 and 2 seconds before continuing with the repeat loop.
 
-###### Recebendo Respostas
+###### Receiving Responses
 
-Na thread de recebimento de respostas o cliente inicializa um contador de respostas recebidas e entra em um laço `while` que testa se o contador de respostas recebidas é menor que o número de operações de leitura calculado inicialmente. Enquando ainda houverem requisições de leitura sem resposta, o laço de repetição continua.
+In the thread receiving responses, the client initializes a counter of responses received and enters a `while` loop which tests whether the counter of responses received is less than the number of read operations initially calculated. As long as there are still unanswered read requests, the loop continues.
 
-Dentro do laço existe um `MPI_Recv` (bloqueante) que espera por uma mensagem de TAG `REPLY_MESSAGE_TAG` que contém a resposta da requisição de leitura. Qualquer outra possível mensagem enviada ao cliente com tags diferentes da tag de resposta serão ignoradas. O cliente recebe a mensagem, imprime a resposta e incrementa o contador de respostas recebidas.
+Inside the loop there is an `MPI_Recv` (blocker) which waits for a `REPLY_MESSAGE_TAG` TAG message containing the response to the read request. Any other possible message sent to the client with tags other than the response tag will be ignored. The client receives the message, prints the response and increments the counter of responses received.
 
-###### Encerrando a Execução
+###### Ending Execution
 
-Quando todas as requisições do vetor de operações foram enviadas a thread de envio de requisições se encerra e fica no `pthread_join` esperando a thread de recebimento de respostas terminar. Quando o contador de respostas recebidas for igual ao número de operações de leitura, a thread de recebimento se encerra e também vai para o `pthread_join`.
+When all the requests in the vector of operations have been sent, the request-sending thread terminates and remains in the `pthread_join` waiting for the response-receiving thread to finish. When the counter of responses received equals the number of read operations, the receiving thread terminates and also goes to the `pthread_join`.
 
-Com as duas threads encerradas, o cliente cria uma última mensagem usando o construtor `new_terminate_message` e envia a mensagem para o load balancer usando `MPI_Send`. O cliente então encerra sua execução. Quando o load balancer receber a mensagem de encerramento de todos os clientes, ele difunde uma mensagem para todas as réplicas indicando que o programa pode ser encerrado e também encerra sua execução.
-
-#### Exemplos de Execução
-
-Veja abaixo um exemplo de execuçãod o sistema com 6 processos, 3 clientes, 2 réplicas e 1 balanceador de carga. Cada cliente faz 4 operações distintas.
-
-```bash
-------- Inicializando Load Balancer -------
-Rank: 0
-Processor: Vitors-MacBook-Pro.local
--------------------------------------
-
-------- Inicializando réplica -------
-Rank: 1
-Processor: Vitors-MacBook-Pro.local
--------------------------------------
-
-Replica 1 esperando mensagens do load balancer...
-
-------- Inicializando réplica -------
-Rank: 2
-Processor: Vitors-MacBook-Pro.local
--------------------------------------
-
-Replica 2 esperando mensagens do load balancer...
-
--------------------------------------
-Replica 2 recebeu uma mensagem de escrita do load balancer
-Replica 2 inseriu ou atualizou a chave `TheKillers` com o valor `SmileLikeYouMeanIt`
--------------------------------------
-
--------------------------------------
-Load Balancer recebeu um pedido de escrita do cliente 5
-Iniciando difusão do pedido de escrita de `SmileLikeYouMeanIt` na chave `TheKillers` para todas as réplicas
--------------------------------------
-
-Load Balancer difundiu o pedido de escrita de `SmileLikeYouMeanIt` na chave `TheKillers` para todas as réplicas
-
--------------------------------------
--------------------------------------
-Replica 1 recebeu uma mensagem de escrita do load balancer
-Replica 1 inseriu ou atualizou a chave `TheKillers` com o valor `SmileLikeYouMeanIt`
--------------------------------------
-
-Replica 1 esperando mensagens do load balancer...
-
-Replica 2 esperando mensagens do load balancer...
-
--------------------------------------
-Replica 2 recebeu uma mensagem de escrita do load balancer
-Replica 2 inseriu ou atualizou a chave `TheKillers` com o valor `MrBrightside`
-------- Inicializando Cliente -------
-Rank: 5
-Processor: Vitors-MacBook-Pro.local
--------------------------------------
-
--------------------------------------
-Cliente 5: WRITE key `TheKillers` value `SmileLikeYouMeanIt`
--------------------------------------
-
-------- Inicializando Cliente -------
-Rank: 3
-Processor: Vitors-MacBook-Pro.local
--------------------------------------
-
--------------------------------------
-Cliente 3: WRITE key `TheKillers` value `MrBrightside`
--------------------------------------
-
-Load Balancer recebeu um pedido de escrita do cliente 3
-Iniciando difusão do pedido de escrita de `MrBrightside` na chave `TheKillers` para todas as réplicas
--------------------------------------
-
-Load Balancer difundiu o pedido de escrita de `MrBrightside` na chave `TheKillers` para todas as réplicas
-
--------------------------------------
-Replica 1 recebeu uma mensagem de escrita do load balancer
-Replica 1 inseriu ou atualizou a chave `TheKillers` com o valor `MrBrightside`
--------------------------------------
-
-Replica 1 esperando mensagens do load balancer...
-
--------------------------------------
-
-Replica 2 esperando mensagens do load balancer...
-
-------- Inicializando Cliente -------
-Rank: 4
-Processor: Vitors-MacBook-Pro.local
--------------------------------------
-
--------------------------------------
-Cliente 4: READ key `TheKillers`
--------------------------------------
-
--------------------------------------
-Load Balancer recebeu um pedido de leitura do cliente 4
-Enviando pedido para réplica `1` para buscar valor da chave `TheKillers`
--------------------------------------
-
--------------------------------------
-Replica 1 recebeu uma mensagem de leitura load balancer
-Replica 1 enviou o valor `MrBrightside` para a chave `TheKillers` para o cliente 4
--------------------------------------
-
-Replica 1 esperando mensagens do load balancer...
-
--------------------------------------
-Cliente 4: READ REPLY key `TheKillers` value `MrBrightside`
--------------------------------------
-
--------------------------------------
-Cliente 5: READ key `TheKillers`
--------------------------------------
-
--------------------------------------
-Cliente 4: WRITE key `TheKillers` value `SomebodyToldMe`
--------------------------------------
-
--------------------------------------
-Cliente 3: WRITE key `Paramore` value `MiseryBusiness`
--------------------------------------
-
--------------------------------------
-Load Balancer recebeu um pedido de leitura do cliente 5
-Enviando pedido para réplica `1` para buscar valor da chave `TheKillers`
--------------------------------------
-
--------------------------------------
-Load Balancer recebeu um pedido de escrita do cliente 4
-Iniciando difusão do pedido de escrita de `SomebodyToldMe` na chave `TheKillers` para todas as réplicas
--------------------------------------
-
-Load Balancer difundiu o pedido de escrita de `SomebodyToldMe` na chave `TheKillers` para todas as réplicas
-
--------------------------------------
-Load Balancer recebeu um pedido de escrita do cliente 3
-Iniciando difusão do pedido de escrita de `MiseryBusiness` na chave `Paramore` para todas as réplicas
--------------------------------------
-
-Load Balancer difundiu o pedido de escrita de `MiseryBusiness` na chave `Paramore` para todas as réplicas
-
--------------------------------------
-Replica 1 recebeu uma mensagem de leitura load balancer
-Replica 1 enviou o valor `MrBrightside` para a chave `TheKillers` para o cliente 5
--------------------------------------
-
-Replica 1 esperando mensagens do load balancer...
-
--------------------------------------
-Replica 1 recebeu uma mensagem de escrita do load balancer
-Replica 1 inseriu ou atualizou a chave `TheKillers` com o valor `SomebodyToldMe`
--------------------------------------
-
-Replica 1 esperando mensagens do load balancer...
-
--------------------------------------
-Replica 1 recebeu uma mensagem de escrita do load balancer
-Replica 1 inseriu ou atualizou a chave `Paramore` com o valor `MiseryBusiness`
--------------------------------------
-
-Replica 1 esperando mensagens do load balancer...
-
--------------------------------------
-Replica 2 recebeu uma mensagem de escrita do load balancer
-Replica 2 inseriu ou atualizou a chave `TheKillers` com o valor `SomebodyToldMe`
--------------------------------------
-
-Replica 2 esperando mensagens do load balancer...
-
--------------------------------------
-Replica 2 recebeu uma mensagem de escrita do load balancer
-Replica 2 inseriu ou atualizou a chave `Paramore` com o valor `MiseryBusiness`
--------------------------------------
-
-Replica 2 esperando mensagens do load balancer...
-
--------------------------------------
-Cliente 5: READ REPLY key `TheKillers` value `MrBrightside`
--------------------------------------
-
--------------------------------------
-Cliente 3: READ key `TheKillers`
--------------------------------------
-
--------------------------------------
-Load Balancer recebeu um pedido de leitura do cliente 3
-Enviando pedido para réplica `1` para buscar valor da chave `TheKillers`
--------------------------------------
-
--------------------------------------
-Replica 1 recebeu uma mensagem de leitura load balancer
-Replica 1 enviou o valor `SomebodyToldMe` para a chave `TheKillers` para o cliente 3
--------------------------------------
-
-Replica 1 esperando mensagens do load balancer...
-
--------------------------------------
-Cliente 3: READ REPLY key `TheKillers` value `SomebodyToldMe`
--------------------------------------
-
--------------------------------------
-Cliente 5: WRITE key `Paramore` value `That'sWhatYouGet`
--------------------------------------
-
--------------------------------------
-Cliente 4: READ key `Paramore`
--------------------------------------
-
--------------------------------------
-Load Balancer recebeu um pedido de escrita do cliente 5
-Iniciando difusão do pedido de escrita de `That'sWhatYouGet` na chave `Paramore` para todas as réplicas
--------------------------------------
-
-Load Balancer difundiu o pedido de escrita de `That'sWhatYouGet` na chave `Paramore` para todas as réplicas
-
--------------------------------------
-Load Balancer recebeu um pedido de leitura do cliente 4
--------------------------------------
-Replica 1 recebeu uma mensagem de escrita do load balancer
-Replica 1 inseriu ou atualizou a chave `Paramore` com o valor `That'sWhatYouGet`
--------------------------------------
-
-Replica 1 esperando mensagens do load balancer...
-
--------------------------------------
-Replica 1 recebeu uma mensagem de leitura load balancer
-Enviando pedido para réplica `1` para buscar valor da chave `Paramore`
--------------------------------------
-
-Replica 1 enviou o valor `That'sWhatYouGet` para a chave `Paramore` para o cliente 4
--------------------------------------
-
-Replica 1 esperando mensagens do load balancer...
-
--------------------------------------
-Cliente 4: READ REPLY key `Paramore` value `That'sWhatYouGet`
--------------------------------------
-
--------------------------------------
-Replica 2 recebeu uma mensagem de escrita do load balancer
-Replica 2 inseriu ou atualizou a chave `Paramore` com o valor `That'sWhatYouGet`
--------------------------------------
-
-Replica 2 esperando mensagens do load balancer...
-
--------------------------------------
-Cliente 4: WRITE key `Paramore` value `crushcrushcrush`
--------------------------------------
-
--------------------------------------
-Load Balancer recebeu um pedido de escrita do cliente 4
-Iniciando difusão do pedido de escrita de `crushcrushcrush` na chave `Paramore` para todas as réplicas
--------------------------------------
-
-Load Balancer difundiu o pedido de escrita de `crushcrushcrush` na chave `Paramore` para todas as réplicas
-
--------------------------------------
-Replica 2 recebeu uma mensagem de escrita do load balancer
-Replica 2 inseriu ou atualizou a chave `Paramore` com o valor `crushcrushcrush`
--------------------------------------
-
-Replica 2 esperando mensagens do load balancer...
-
--------------------------------------
-Replica 1 recebeu uma mensagem de escrita do load balancer
-Replica 1 inseriu ou atualizou a chave `Paramore` com o valor `crushcrushcrush`
--------------------------------------
-
-Replica 1 esperando mensagens do load balancer...
-
--------------------------------------
-Cliente 3: READ key `Paramore`
--------------------------------------
-
--------------------------------------
-Load Balancer recebeu um pedido de leitura do cliente 3
-Enviando pedido para réplica `1` para buscar valor da chave `Paramore`
--------------------------------------
-
--------------------------------------
-Replica 1 recebeu uma mensagem de leitura load balancer
-Replica 1 enviou o valor `crushcrushcrush` para a chave `Paramore` para o cliente 3
--------------------------------------
-
-Replica 1 esperando mensagens do load balancer...
-
--------------------------------------
-Cliente 3: READ REPLY key `Paramore` value `crushcrushcrush`
--------------------------------------
-
--------------------------------------
-Cliente 5: READ key `Paramore`
--------------------------------------
-
--------------------------------------
-Cliente 5: READ REPLY key `Paramore` value `crushcrushcrush`
--------------------------------------
-
--------------------------------------
-Load Balancer recebeu um pedido de leitura do cliente 5
-Enviando pedido para réplica `1` para buscar valor da chave `Paramore`
--------------------------------------
-
--------------------------------------
-Replica 1 recebeu uma mensagem de leitura load balancer
-Replica 1 enviou o valor `crushcrushcrush` para a chave `Paramore` para o cliente 5
--------------------------------------
-
-Replica 1 esperando mensagens do load balancer...
-
-------- Encerrando cliente 3 -------
-
--------------------------------------
-Load Balancer recebeu um pedido de finalização do cliente 3
--------------------------------------
-
--------------------------------------
-Load Balancer recebeu um pedido de finalização do cliente 5
--------------------------------------
-
-------- Encerrando cliente 5 -------
-
--------------------------------------
-Load Balancer recebeu um pedido de finalização do cliente 4
--------------------------------------
-
-Load Balancer difundiu o pedido de finalização do programa para todas as réplicas
-
-------- Encerrando Load Balancer 0 -------
-
-------- Encerrando cliente 4 -------
-
--------------------------------------
-Replica 2 recebeu uma mensagem de finalização do load balancer
--------------------------------------
-
-------- Encerrando réplica 2 -------
-
--------------------------------------
-Replica 1 recebeu uma mensagem de finalização do load balancer
--------------------------------------
-
-------- Encerrando réplica 1 -------
-```
-
-Repare que os clientes fazem suas operações, o load balancer distribui as requisições para as réplicas e as réplicas respondem as requisições diretamente aos clientes. No final, cada cliente encerra sua execução e quando todos estão finalizados o load balancer encerra o programa ao difundir uma mensagem de encerramento para todas as réplicas antes de encerrar sua própria execução.
+With both threads terminated, the client creates one last message using the `new_terminate_message` constructor and sends the message to the load balancer using `MPI_Send`. The client then terminates its execution. When the load balancer receives the termination message from all clients, it broadcasts a message to all replicas indicating that the program can be terminated and also terminates its execution.
 
 #### Conclusão
 
